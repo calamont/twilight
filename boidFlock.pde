@@ -11,11 +11,9 @@ class boidFlock {
     }
   }
   
-  void run() {
-    
+  void run() { 
     for (boid b : boids) {
       b.run(boids);
     }
-
   }
 }

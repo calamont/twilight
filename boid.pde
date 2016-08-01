@@ -9,8 +9,6 @@ class boid {
   float prox;
   float maxforce, maxspeed;
   float scaler;
-  float triagsize1;
-  float triagsize2;
   
   int opacity;
   int opacitychanger;
@@ -23,13 +21,10 @@ class boid {
     centre = new PVector(0,0);
     centrespeed = new PVector(0,0);
     
-    scaler = 750/width;
+    scaler = 750/width; //changes many of the variables in proportion to the size of the window used
     maxforce = 0.015*scaler;
     maxspeed = 3*scaler;
-    triagsize1 = 4*scaler;
-    triagsize2 = 10*scaler;
-    //prox = width*1.414;
-    prox = 100;
+    prox = 100; //determines how close boids can come before being repulsed
     
     opacity = 255;
     opacitychanger = -5;
@@ -44,6 +39,7 @@ class boid {
   }
   
   void update() {
+    //randomly 
     if (trigger == 0 && random(0,1) > 0.9999) {
       trigger = 1;
     } else if (trigger > 1) {
@@ -60,41 +56,26 @@ class boid {
     int colour = colourboid(centre,centrespeed);
     flash();
     stroke(colour,opacity);
-    //noStroke();
     fill(colour);
-    //noFill();
     pushMatrix();
     translate(location.x,location.y);
-    //angle = velocity.heading() - PI/2;
     rectMode(CENTER);
-    //rotate(angle);
-    //triangle(triagsize1,0,-triagsize1,0,0,triagsize2);
     ellipse(0,0,1,1);
     popMatrix();
   }
   
   void borders() {
-    //if you want the edge to be the boundry
+    //if you want have a square perimeter inwardly applying a force restricting the boids
     if (location.x < 150*scaler) applyForce(new PVector(3.5*maxforce,0));
     if (location.y < 150*scaler) applyForce(new PVector(0,3.5*maxforce));
     if (location.x > width-150*scaler) applyForce(new PVector(-3.5*maxforce,0));
     if (location.y > height-150*scaler) applyForce(new PVector(0,-3.5*maxforce));
     
-    //if you want a circle boundry
+    //if you want a circle boundry constraining the boids
     //PVector fromcentre = PVector.sub(new PVector(width/2,height/2),location);
     //if (fromcentre.mag() > 200) {
     //  fromcentre.normalize();
     //  fromcentre.mult(5*maxforce);
-    //  applyForce(fromcentre);
-    //}
-    
-    //if you want a circle object in the middle
-    //PVector fromcentre = PVector.sub(location, new PVector(width/2,height/2));
-    //if (fromcentre.mag() < 100) {
-    //  fromcentre.normalize();
-    //  fromcentre.mult(maxspeed);
-    //  fromcentre.sub(velocity);
-    //  fromcentre.mult(2.5*maxforce);
     //  applyForce(fromcentre);
     //}
   }
@@ -107,7 +88,8 @@ class boid {
     PVector sep = separate(boids);
     PVector uni = unite(boids);
     PVector mat = matchspeed(boids);
-   
+    
+    //providing weights to the respective rules controlling boid flock motion
     sep.mult(1.2);
     uni.mult(0.8);
     mat.mult(1);
@@ -117,6 +99,7 @@ class boid {
     applyForce(mat);
   }
  
+  //determines the direction of motion which a given boid should move based on the boids around it
   PVector move(PVector direction) {
     PVector direct = new PVector(0,0);
     direct = direction.copy();
@@ -142,9 +125,6 @@ class boid {
     if (count > 0) {
       u.div(count);
       centre.set(u);
-      //fill(255,0,0);
-      //ellipse(u.x,u.y,10,10);
-      //fill(0);
       u.sub(location);
       u.set(move(u));
     } else {
@@ -184,6 +164,7 @@ class boid {
   }
  
   PVector matchspeed(boid[] boids) {
+    //tries to match the speed of a given boid with the average speed of the flock
     PVector v = new PVector(0,0);
     float count = 0;
     for (boid b : boids) {
@@ -203,12 +184,12 @@ class boid {
     return v;
   }
   
+  //colours a boid on a scale from orange to blue based on its position with the flock
   int colourboid(PVector c, PVector s) {
     s.normalize();
     s.rotate(PI);
     PVector loc = location.copy();
     loc.sub(c);
-    //float centredist = log(1+((loc.dot(s))+200)/400);
     float centredist = ((loc.dot(s))+100)/200;
     pow(centredist,2);
     constrain(centredist,0,1);
@@ -217,9 +198,9 @@ class boid {
     color to = color(0,128,255);
     color col = lerpColor(from,to,centredist);
     return col;
-    //return int(map(centredist,-200,200,0,255));
   }
   
+  //ellicits a sudden change in transparancy of a boid, which propagates to its neighbours throughout the flock
   void flash() {
     if (opacity > 0 && trigger == 1) {
       opacity += opacitychanger;
